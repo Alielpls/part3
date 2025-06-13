@@ -1,10 +1,19 @@
 const express = require('express')
+const morgan = require('morgan')
+
 const app = express()
 
 app.use(express.json())
 
+
+morgan.token('data', (request, response) =>{
+    if(request.method === 'POST')
+        return JSON.stringify(request.body)
+})
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time[3] ms :data'))
+
 const randID = () =>{
-    // 250 is the max and persons.length is the min
     const max = 250
     const min = 1
     return String(Math.round(Math.random() * (max - min) - min))
@@ -37,9 +46,9 @@ let persons =
 app.get('/info', (request, response) =>{
     const dateReq = new Date().toString()
     
-    response.send(`<p> Phonebook has ${persons.length} numbers </p> <p> it's ${dateReq} </p>`)
+    response.send(`<p> Phonebook has ${persons.length} numbers </p> 
+        <p> it's ${dateReq} </p>`)
 })
-
 
 app.get('/api/persons', (request, response) =>{
     response.json(persons)
@@ -91,7 +100,7 @@ app.post('/api/persons', (request, response) =>{
         }
 
         persons = persons.concat(person)
-        response.status(204).end()
+        response.status(201).json(person).end()
     }
 })
 
