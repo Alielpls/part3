@@ -1,6 +1,6 @@
 const express = require('express')
 const morgan = require('morgan')
-const cors = require('cors')
+// const cors = require('cors')
 
 
 const app = express()
@@ -13,7 +13,7 @@ morgan.token('data', (request, response) =>{
 app.use(express.static('dist'))
 app.use(express.json())
 app.use(morgan(':method :url :status :res[content-length] - :response-time[3] ms :data'))
-app.use(cors())
+// app.use(cors())
 
 
 const randID = () =>{
