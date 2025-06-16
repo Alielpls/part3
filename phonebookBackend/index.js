@@ -1,17 +1,20 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
+
 
 const app = express()
-
-app.use(express.json())
-
 
 morgan.token('data', (request, response) =>{
     if(request.method === 'POST')
         return JSON.stringify(request.body)
 })
 
+app.use(express.static('dist'))
+app.use(express.json())
 app.use(morgan(':method :url :status :res[content-length] - :response-time[3] ms :data'))
+app.use(cors())
+
 
 const randID = () =>{
     const max = 250
@@ -104,7 +107,7 @@ app.post('/api/persons', (request, response) =>{
     }
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
     console.log(`Server is now running on port ${PORT}`)
 })
