@@ -1,7 +1,8 @@
 const express = require('express')
 const morgan = require('morgan')
 // const cors = require('cors')
-
+require('dotenv').config()
+const Person = require('./models/person')
 
 const app = express()
 
@@ -16,11 +17,11 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time[3] ms
 // app.use(cors())
 
 
-const randID = () =>{
-    const max = 250
-    const min = 1
-    return String(Math.round(Math.random() * (max - min) - min))
-}
+// const randID = () =>{
+//     const max = 250
+//     const min = 1
+//     return String(Math.round(Math.random() * (max - min) - min))
+// }
 
 let persons =
 [
@@ -54,20 +55,35 @@ app.get('/info', (request, response) =>{
 })
 
 app.get('/api/persons', (request, response) =>{
-    response.json(persons)
+    Person.find({}).then(result =>{
+        response.json(result)
+    })
 })
 
 app.get('/api/persons/:id', (request, response) =>{
     const id = request.params.id
-    const person = persons.find(p => p.id === id)
-
-    if(person)
-        response.json(person)
-    else{
-        response.status(404).json({
-            error:"Person not found."
-        })
-    }
+    
+    Person.findById(id).then(person =>{
+        if(person)
+            response.json(person)
+        else{
+            response.status(404).json({
+                error:"Person not found."
+            })
+        }
+    }).catch(error =>{
+        console.log(error)
+        response.status(400).send({error: 'malformatted id!'})
+    })
+    
+    //const person = persons.find(p => p.id === id)
+    // if(person)
+    //     response.json(person)
+    // else{
+    //     response.status(404).json({
+    //         error:"Person not found."
+    //     })
+    // }
 })
 
 app.delete('/api/persons/:id', (request, response) =>{
@@ -86,28 +102,21 @@ app.post('/api/persons', (request, response) =>{
             error:"Person must have name and number"
         }).end()
     }
-
-    const nameRequest = body.name
-    const numberRequest = String(body.number)
     
-    if(persons.find(p => p.name.toLowerCase() === nameRequest.toLowerCase())){
-        response.status(400).json({
-            error:"Name must be unique"
-        }).end()
-    }else{
-
-        const person = {
-            id: randID(),
-            name: nameRequest,
-            number: numberRequest
-        }
-
-        persons = persons.concat(person)
-        response.status(201).json(person).end()
-    }
+    const person = new Person({
+        //id: randID(),
+        name: body.name,
+        number: String(body.number)
+    })
+    
+    person.save().then(savedPerson =>{
+        response.status(201).json(savedPerson)
+    })
+    // persons = persons.concat(person)
+    //response.status(201).json(person).end()
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server is now running on port ${PORT}`)
 })
